@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCOUNT, DCOUNTA</title>
+    <style>
+        body { 
+            font-family: 'Malgun Gothic', sans-serif; 
+            background-color: #f3f2f1; 
+            margin: 0; 
+            padding: 20px; 
+            color: #333; 
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            padding: 30px; 
+        }
+        
+        .excel-ui { 
+            border: 1px solid #c8c6c4; 
+            border-radius: 4px; 
+            overflow: hidden; 
+            font-family: 'Segoe UI', sans-serif; 
+            margin-bottom: 30px; 
+        }
+        
+        .formula-bar { 
+            display: flex; 
+            align-items: center; 
+            background: white; 
+            padding: 6px 10px; 
+            border-bottom: 1px solid #c8c6c4; 
+        }
+        .fx-icon { 
+            font-weight: bold; 
+            font-style: italic; 
+            color: #666; 
+            margin-right: 10px; 
+            user-select: none; 
+        }
+        .formula-input { 
+            flex-grow: 1; 
+            font-family: Consolas, monospace; 
+            font-size: 16px; 
+            letter-spacing: 0.5px; 
+            padding: 4px; 
+        }
+        
+        .excel-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: white; 
+            text-align: center; 
+        }
+        .excel-table th { 
+            background: #f3f2f1; 
+            border: 1px solid #c8c6c4; 
+            font-weight: normal; 
+            color: #666; 
+            padding: 4px; 
+        }
+        .excel-table td { 
+            border: 1px solid #c8c6c4; 
+            padding: 8px; 
+            position: relative; 
+        }
+        .excel-table .row-header { 
+            background: #f3f2f1; 
+            color: #666; 
+            width: 30px; 
+        }
+        .col-header { 
+            background: #f3f2f1; 
+            font-weight: bold; 
+        }
+        
+        select { 
+            padding: 4px; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            font-size: 14px; 
+            text-align: center; 
+            cursor: pointer;
+            width: 100%;
+        }
+        select:focus { 
+            outline: 2px solid #107C41; 
+        }
+        
+        .result-cell { 
+            font-weight: bold; 
+            color: #d83b01; 
+            background-color: #fff3e0; 
+            font-size: 16px;
+        }
+        
+        /* Highlight variables */
+        .data-range { 
+            border-left: 2px solid #0078D4 !important; 
+            border-right: 2px solid #0078D4 !important; 
+            background-color: rgba(0, 120, 212, 0.05); 
+        }
+        .data-range-top { border-top: 2px solid #0078D4 !important; }
+        .data-range-bottom { border-bottom: 2px solid #0078D4 !important; }
+
+        .criteria-range { 
+            border-left: 2px solid #D81B60 !important; 
+            border-right: 2px solid #D81B60 !important; 
+            background-color: rgba(216, 27, 96, 0.05); 
+        }
+        .criteria-range-top { border-top: 2px solid #D81B60 !important; }
+        .criteria-range-bottom { border-bottom: 2px solid #D81B60 !important; }
+
+        /* 레이아웃 스타일 */
+        .header-banner { 
+            background-color: #107C41; 
+            color: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            text-align: center; 
+            margin-bottom: 25px; 
+            box-shadow: 0 4px 6px rgba(16,124,65,0.2); 
+        }
+        .header-banner h1 { 
+            margin: 0; 
+            font-size: 32px; 
+            font-weight: 900; 
+            letter-spacing: 1px; 
+        }
+        
+        .section-title { 
+            font-size: 20px; 
+            color: #333; 
+            font-weight: bold; 
+            margin: 30px 0 15px 0; 
+        }
+        
+        .info-box { 
+            background: #fff; 
+            border-left: 6px solid #107C41; 
+            padding: 18px 20px; 
+            border-radius: 6px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            font-size: 15px; 
+            line-height: 1.6; 
+        }
+        
+        .syntax-box { 
+            background: #f8fafc; 
+            border: 1px solid #cbd5e1; 
+            padding: 15px 20px; 
+            border-radius: 6px; 
+            font-family: Consolas, monospace; 
+            font-size: 16px; 
+            font-weight: bold; 
+            color: #1e293b; 
+            line-height: 1.8; 
+            margin-bottom: 15px;
+        }
+        
+        .arg-list { 
+            list-style: none; 
+            padding: 0; 
+            margin: 0 0 35px 0; 
+        }
+        .arg-list li { 
+            margin-bottom: 8px; 
+            font-size: 15px; 
+            padding-left: 20px; 
+            position: relative; 
+        }
+        .arg-list li::before { 
+            content: "•"; 
+            color: #107C41; 
+            font-weight: bold; 
+            position: absolute; 
+            left: 5px; 
+        }
+        
+        .text-data { color: #0078D4; }
+        .text-crit { color: #D81B60; }
+        .text-highlight { color: #d83b01; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-banner">
+        <h1>DCOUNT, DCOUNTA</h1>
+    </div>
+    
+    <div class="section-title">📌 어떤 일을 하는 함수인가요?</div>
+    <div class="info-box">
+        데이터베이스(표)에서 <strong>조건을 만족하는 항목들의 개수</strong>를 세어줍니다.<br><br>
+        <span class="text-highlight">✓ DCOUNT:</span> 계산할 열에 <strong>'숫자'가 입력된 셀</strong>의 개수만 셉니다. (문자는 무시!)<br>
+        <span class="text-highlight">✓ DCOUNTA:</span> 계산할 열이 <strong>비어있지 않은(숫자, 문자 모두 포함) 모든 셀</strong>의 개수를 셉니다.
+    </div>
+
+    <div class="section-title">📝 사용 방법</div>
+    <div class="syntax-box">
+        <div>=DCOUNT(<span class="text-data">데이터_범위</span>, 계산할_열_번호, <span class="text-crit">조건_범위</span>)</div>
+        <div>=DCOUNTA(<span class="text-data">데이터_범위</span>, 계산할_열_번호, <span class="text-crit">조건_범위</span>)</div>
+    </div>
+    <ul class="arg-list">
+        <li><strong class="text-data">데이터_범위:</strong> 계산할 표 전체 영역입니다. <strong>(제목 포함 드래그)</strong></li>
+        <li><strong>계산할_열_번호:</strong> 개수를 셀 대상이 되는 열이 표의 왼쪽에서부터 몇 번째인지 적습니다.</li>
+        <li><strong class="text-crit">조건_범위:</strong> 따로 적어둔 '조건 제목'과 '조건 값' 영역입니다. (위아래 세트)</li>
+    </ul>
+
+    <div class="section-title">💡 실습 예시: "결석" 문자가 있을 때의 차이점 확인하기</div>
+    
+    <div class="excel-ui">
+        <!-- DCOUNT 수식 입력줄 -->
+        <div class="formula-bar">
+            <span class="fx-icon">fx</span>
+            <div class="formula-input" id="formula-dcount"></div>
+        </div>
+        <!-- DCOUNTA 수식 입력줄 -->
+        <div class="formula-bar" style="border-top: 1px solid #f3f2f1;">
+            <span class="fx-icon">fx</span>
+            <div class="formula-input" id="formula-dcounta"></div>
+        </div>
+        
+        <table class="excel-table">
+            <thead>
+                <tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="row-header">1</td>
+                    <td colspan="3" style="text-align: left; font-weight: bold; padding-left: 10px; color: #0078D4;">[데이터베이스] (A2:C7)</td>
+                    <td></td>
+                    <td colspan="3" style="text-align: left; font-weight: bold; padding-left: 10px; color: #D81B60;">[조건 및 결과]</td>
+                </tr>
+                <tr>
+                    <td class="row-header">2</td>
+                    <td class="col-header data-range data-range-top">이름</td>
+                    <td class="col-header data-range data-range-top">부서</td>
+                    <td class="col-header data-range data-range-top">평가점수</td>
+                    <td></td>
+                    <td class="col-header criteria-range criteria-range-top">부서</td>
+                    <td></td>
+                    <td class="col-header">숫자 개수 (DCOUNT)</td>
+                </tr>
+                <tr>
+                    <td class="row-header">3</td>
+                    <td class="data-range">김지훈</td>
+                    <td class="data-range">기획팀</td>
+                    <td class="data-range">85</td>
+                    <td></td>
+                    <td class="criteria-range criteria-range-bottom" style="padding: 0 4px;">
+                        <select id="criteria-dept" onchange="calculateDFunctions()">
+                            <option value="기획팀" selected>기획팀</option>
+                            <option value="영업팀">영업팀</option>
+                        </select>
+                    </td>
+                    <td></td>
+                    <td class="result-cell" id="result-dcount"></td>
+                </tr>
+                <tr>
+                    <td class="row-header">4</td>
+                    <td class="data-range">이서연</td>
+                    <td class="data-range">영업팀</td>
+                    <td class="data-range">92</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="col-header">전체 개수 (DCOUNTA)</td>
+                </tr>
+                <tr>
+                    <td class="row-header">5</td>
+                    <td class="data-range">박민준</td>
+                    <td class="data-range">기획팀</td>
+                    <td class="data-range text-highlight">결석</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td class="result-cell" id="result-dcounta"></td>
+                </tr>
+                <tr>
+                    <td class="row-header">6</td>
+                    <td class="data-range">최지아</td>
+                    <td class="data-range">영업팀</td>
+                    <td class="data-range">88</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="row-header">7</td>
+                    <td class="data-range data-range-bottom">정우진</td>
+                    <td class="data-range data-range-bottom">기획팀</td>
+                    <td class="data-range data-range-bottom">95</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 원본 데이터 (문자 데이터 '결석' 포함)
+    const dataRecords = [
+        { name: '김지훈', dept: '기획팀', score: 85 },
+        { name: '이서연', dept: '영업팀', score: 92 },
+        { name: '박민준', dept: '기획팀', score: '결석' }, // 숫자 아님
+        { name: '최지아', dept: '영업팀', score: 88 },
+        { name: '정우진', dept: '기획팀', score: 95 }
+    ];
+
+    // 괄호 및 구문 강조 (Syntax Highlighting) 함수
+    function highlightExcelFormula(text) {
+        // 괄호 색상: 1단계 빨강, 2단계 초록, 3단계 보라
+        const bracketColors = ['#D81B60', '#009688', '#8E24AA'];
+        let depth = 0;
+        let result = "";
+        
+        const tokens = text.split(/([()])/);
+        
+        for (let token of tokens) {
+            if (token === '(') {
+                let color = bracketColors[depth % bracketColors.length];
+                result += `<span style="color:${color}; font-weight:900;">(</span>`;
+                depth++;
+            } else if (token === ')') {
+                depth--;
+                let colorIndex = Math.max(0, depth);
+                let color = bracketColors[colorIndex % bracketColors.length];
+                result += `<span style="color:${color}; font-weight:900;">)</span>`;
+            } else {
+                let coloredToken = token
+                    .replace(/(DCOUNTA|DCOUNT)/g, '<span style="color:#005fcc; font-weight:bold;">$1</span>')
+                    .replace(/(A2:C7)/g, '<span style="color:#0078D4; font-weight:bold;">$1</span>')
+                    .replace(/(E2:E3)/g, '<span style="color:#D81B60; font-weight:bold;">$1</span>');
+                result += coloredToken;
+            }
+        }
+        return result;
+    }
+
+    // 결과 계산 및 UI 업데이트
+    function calculateDFunctions() {
+        const selectedDept = document.getElementById('criteria-dept').value;
+        const filteredRecords = dataRecords.filter(d => d.dept === selectedDept);
+        
+        let dcount = 0;
+        let dcounta = 0;
+
+        filteredRecords.forEach(record => {
+            // 빈 값이 아닐 경우 DCOUNTA는 무조건 카운트
+            if (record.score !== null && record.score !== '') {
+                dcounta++;
+                
+                // 타입이 숫자일 때만 DCOUNT에서 카운트 ('결석' 문자 무시)
+                if (typeof record.score === 'number') {
+                    dcount++;
+                }
+            }
+        });
+        
+        document.getElementById('result-dcount').innerText = dcount;
+        document.getElementById('result-dcounta').innerText = dcounta;
+        
+        let dcountFormula = `=DCOUNT(A2:C7, 3, E2:E3)   // ${selectedDept}의 '숫자' 입력자 수`;
+        let dcountaFormula = `=DCOUNTA(A2:C7, 3, E2:E3)   // ${selectedDept}의 전체 평가자 수`;
+        
+        document.getElementById('formula-dcount').innerHTML = highlightExcelFormula(dcountFormula);
+        document.getElementById('formula-dcounta').innerHTML = highlightExcelFormula(dcountaFormula);
+    }
+
+    // 페이지 로드 시 초기 계산 실행
+    calculateDFunctions();
+</script>
+
+</body>
+</html>
